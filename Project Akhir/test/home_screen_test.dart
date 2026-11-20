@@ -10,6 +10,7 @@ import 'package:voca/features/vocabulary/screens/word_detail_screen.dart';
 import 'package:voca/shared/models/result.dart';
 import 'package:voca/shared/models/vocabulary_entry.dart';
 import 'package:voca/shared/services/contracts.dart';
+import 'package:voca/features/vocabulary/providers/favorites_provider.dart';
 
 class _FakeSource implements VocabularySource {
   _FakeSource(this._handler);
@@ -21,10 +22,15 @@ class _FakeSource implements VocabularySource {
       _handler(word);
 }
 
-Widget _app(VocabularySource source) => ChangeNotifierProvider(
-      // Tanggal dikunci agar kata hari ini selalu kSeedWords[0].
-      create: (_) =>
-          VocabularyProvider(source, now: () => DateTime(2026, 1, 1)),
+Widget _app(VocabularySource source) => MultiProvider(
+      providers: [
+        // Tanggal dikunci agar kata hari ini selalu kSeedWords[0].
+        ChangeNotifierProvider(
+          create: (_) =>
+              VocabularyProvider(source, now: () => DateTime(2026, 1, 1)),
+        ),
+        ChangeNotifierProvider(create: (_) => FavoritesProvider()),
+      ],
       child: MaterialApp(theme: AppTheme.light, home: const HomeScreen()),
     );
 

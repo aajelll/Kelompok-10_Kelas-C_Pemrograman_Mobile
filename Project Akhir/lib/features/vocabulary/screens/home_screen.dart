@@ -1,3 +1,4 @@
+import '../widgets/favorite_button.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -135,7 +136,12 @@ class _DailyCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(entry.word, style: text.headlineMedium),
+          Row(
+            children: [
+              Expanded(child: Text(entry.word, style: text.headlineMedium)),
+              FavoriteButton(entry: entry),
+            ],
+          ),
           if (phonetic != null) Text(phonetic, style: text.bodySmall),
           if (first != null) ...[
             const SizedBox(height: AppSpacing.md),

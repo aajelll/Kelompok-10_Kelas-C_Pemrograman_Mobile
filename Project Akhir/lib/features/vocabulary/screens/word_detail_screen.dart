@@ -77,7 +77,12 @@ class _WordDetailScreenState extends State<WordDetailScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(entry.word, style: text.headlineMedium),
+              Row(
+                children: [
+                  Expanded(child: Text(entry.word, style: text.headlineMedium))
+                
+                ],
+              ),
               if (phonetic != null) Text(phonetic, style: text.bodySmall),
               ..._meaningWidgets(text, entry.meanings),
             ],

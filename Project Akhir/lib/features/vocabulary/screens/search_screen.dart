@@ -127,7 +127,12 @@ class _ResultCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(entry.word, style: text.titleMedium),
+          Row(
+            children: [
+              Expanded(child: Text(entry.word, style: text.titleMedium))
+              
+            ],
+          ),
           if (phonetic != null) Text(phonetic, style: text.bodySmall),
           if (first != null) ...[
             const SizedBox(height: AppSpacing.xs),

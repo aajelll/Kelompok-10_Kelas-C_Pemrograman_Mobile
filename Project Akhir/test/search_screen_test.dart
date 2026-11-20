@@ -7,6 +7,7 @@ import 'package:voca/features/vocabulary/screens/search_screen.dart';
 import 'package:voca/shared/models/result.dart';
 import 'package:voca/shared/models/vocabulary_entry.dart';
 import 'package:voca/shared/services/contracts.dart';
+import 'package:voca/features/vocabulary/providers/favorites_provider.dart';
 
 class _FakeSource implements VocabularySource {
   _FakeSource(this._handler);
@@ -18,8 +19,11 @@ class _FakeSource implements VocabularySource {
       _handler(word);
 }
 
-Widget _app(VocabularySource source) => ChangeNotifierProvider(
-      create: (_) => VocabularyProvider(source),
+Widget _app(VocabularySource source) => MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => VocabularyProvider(source)),
+        ChangeNotifierProvider(create: (_) => FavoritesProvider()),
+      ],
       child: MaterialApp(theme: AppTheme.light, home: const SearchScreen()),
     );
 
