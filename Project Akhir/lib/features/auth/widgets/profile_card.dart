@@ -1,3 +1,5 @@
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_card.dart';
