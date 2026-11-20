@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "780682650071",
+    "project_id": "voca-b90bf",
+    "storage_bucket": "voca-b90bf.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:780682650071:android:06eedee19f28ad10a76b92",
+        "android_client_info": {
+          "package_name": "com.kelompok10.voca"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC5CiSWPmjmwpygcCOijRHvM5yV6SHhWlw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:780682650071:android:4b7c81501947d26ca76b92",
+        "android_client_info": {
+          "package_name": "com.voca.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC5CiSWPmjmwpygcCOijRHvM5yV6SHhWlw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
