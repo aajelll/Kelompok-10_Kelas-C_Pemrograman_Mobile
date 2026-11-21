@@ -1,3 +1,5 @@
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_theme.dart';
 
@@ -25,7 +27,7 @@ class LogoutButton extends StatelessWidget {
     );
 
     if (confirmed == true && context.mounted) {
-      // TODO Anggota 1: context.read<AuthProvider>().logout();
+     await context.read<AuthProvider>().logout();
     }
   }
 
