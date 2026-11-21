@@ -1,3 +1,5 @@
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_card.dart';
@@ -10,9 +12,9 @@ class ProfileCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
 
-    // TODO Anggota 1: ambil dari AuthProvider (displayName & email dari Firebase Auth)
-    const name = 'Nama Pengguna';
-    const email = 'email@contoh.com';
+    final auth = context.watch<AuthProvider>();
+    final name = auth.displayName;
+    final email = auth.email;
     final initial = name.isEmpty ? '?' : name[0].toUpperCase();
 
     return AppCard(
