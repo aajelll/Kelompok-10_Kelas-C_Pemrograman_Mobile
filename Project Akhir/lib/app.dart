@@ -5,6 +5,7 @@ import 'core/theme/app_theme.dart';
 import 'features/auth/providers/auth_provider.dart';
 import 'features/auth/screens/login_screen.dart';
 import 'features/home_shell.dart';
+import 'features/progress/providers/progress_provider.dart';
 import 'features/quiz/providers/quiz_provider.dart';
 import 'features/quiz/services/quiz_result_repository.dart';
 import 'features/vocabulary/providers/favorites_provider.dart';
@@ -32,6 +33,10 @@ class VocaApp extends StatelessWidget {
               storeFactory: FirestoreQuizResultRepository.new,
             ),
             update: (_, auth, quiz) => quiz!..updateUser(auth.uid),
+          ),
+          ChangeNotifierProxyProvider<AuthProvider, ProgressProvider>(
+            create: (_) => ProgressProvider(),
+            update: (_, auth, progress) => progress!..updateUser(auth.uid),
           ),
         ],
         child: MaterialApp(

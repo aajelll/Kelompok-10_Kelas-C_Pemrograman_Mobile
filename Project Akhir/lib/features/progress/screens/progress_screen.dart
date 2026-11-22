@@ -1,21 +1,17 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../core/extensions/datetime_extensions.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/state_message.dart';
 import '../../../shared/models/quiz_result.dart';
-import '../../auth/providers/auth_provider.dart';
 import '../../auth/widgets/logout_button.dart';
 import '../../auth/widgets/profile_card.dart';
 import '../../quiz/screens/quiz_screen.dart';
-import '../../quiz/services/quiz_result_repository.dart';
 import '../../vocabulary/providers/favorites_provider.dart';
-
-/// Jumlah riwayat kuis yang ditampilkan di layar ini.
-const int _kMaxHistoryItems = 10;
+import '../../vocabulary/providers/vocabulary_provider.dart' show LoadStatus;
+import '../providers/progress_provider.dart';
 
 class ProgressScreen extends StatefulWidget {
   const ProgressScreen({super.key});
@@ -25,75 +21,25 @@ class ProgressScreen extends StatefulWidget {
 }
 
 class _ProgressScreenState extends State<ProgressScreen> {
-  // TODO Anggota 3 (langkah notifikasi): simpan pengaturan ini lewat
-  // Firestore dan layanan pengingat.
+  // Pengingat masih tampilan sementara; dihubungkan ke FCM dan Firestore
+  // pada langkah notifikasi.
   bool _reminderOn = true;
-
-  // Riwayat kuis milik akun yang sedang masuk, diperbarui otomatis.
-  StreamSubscription<List<QuizResult>>? _historySub;
-  String? _historyUid;
-  List<QuizResult> _history = const [];
-  bool _historyLoaded = false;
-  String? _historyError;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _listenHistory(context.watch<AuthProvider>().uid);
-  }
-
-  @override
-  void dispose() {
-    _historySub?.cancel();
-    super.dispose();
-  }
-
-  /// Berlangganan riwayat kuis untuk [uid]. Dipanggil ulang saat akun berganti.
-  void _listenHistory(String? uid) {
-    if (uid == _historyUid) return;
-    _historySub?.cancel();
-    _historySub = null;
-    _historyUid = uid;
-    _history = const [];
-    _historyLoaded = false;
-    _historyError = null;
-    if (uid == null) return;
-
-    _historySub = FirestoreQuizResultRepository(uid).watchAll().listen(
-      (list) {
-        if (!mounted) return;
-        setState(() {
-          _history = list;
-          _historyLoaded = true;
-          _historyError = null;
-        });
-      },
-      onError: (Object _) {
-        if (!mounted) return;
-        setState(() {
-          _historyLoaded = true;
-          _historyError = 'Periksa koneksi lalu buka ulang halaman ini.';
-        });
-      },
-    );
-  }
-
-  void _openQuiz() {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (_) => const QuizScreen()),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    final favoriteCount = context.watch<FavoritesProvider>().count;
+    final favorites = context.watch<FavoritesProvider>();
+    final progress = context.watch<ProgressProvider>();
+    final last = progress.lastResult;
 
-    final historyReady = _historyLoaded && _historyError == null;
-    final quizCount = historyReady ? '${_history.length}' : '-';
-    final lastScore = historyReady && _history.isNotEmpty
-        ? '${_history.first.score}/${_history.first.totalQuestions}'
+    // Tanda "-" selama data belum tersedia, supaya tidak tampil "0" palsu.
+    final favoritesValue =
+        favorites.status == LoadStatus.success ? '${favorites.count}' : '-';
+    final completedValue = progress.status == LoadStatus.success
+        ? '${progress.completedCount}'
         : '-';
+    final lastValue =
+        last == null ? '-' : '${last.score}/${last.totalQuestions}';
 
     return Scaffold(
       appBar: AppBar(title: const Text('Profil & Progres')),
@@ -112,7 +58,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
               Expanded(
                 child: _StatCard(
                   icon: Icons.favorite,
-                  value: '$favoriteCount',
+                  value: favoritesValue,
                   label: 'Kata favorit',
                 ),
               ),
@@ -120,7 +66,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
               Expanded(
                 child: _StatCard(
                   icon: Icons.task_alt,
-                  value: quizCount,
+                  value: completedValue,
                   label: 'Kuis selesai',
                 ),
               ),
@@ -128,7 +74,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
               Expanded(
                 child: _StatCard(
                   icon: Icons.emoji_events_outlined,
-                  value: lastScore,
+                  value: lastValue,
                   label: 'Skor terakhir',
                 ),
               ),
@@ -136,7 +82,9 @@ class _ProgressScreenState extends State<ProgressScreen> {
           ),
           const SizedBox(height: AppSpacing.md),
           ElevatedButton.icon(
-            onPressed: _openQuiz,
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const QuizScreen()),
+            ),
             icon: const Icon(Icons.quiz_outlined),
             label: const Text('Mulai kuis'),
           ),
@@ -157,7 +105,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                 ListTile(
                   enabled: _reminderOn,
                   title: const Text('Waktu pengingat'),
-                  trailing: const Text('19:00'), // TODO: time picker
+                  trailing: const Text('19:00'),
                   onTap: () {},
                 ),
               ],
@@ -167,7 +115,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
           const SizedBox(height: AppSpacing.lg),
           Text('Riwayat kuis', style: text.titleMedium),
           const SizedBox(height: AppSpacing.sm),
-          _buildHistory(),
+          _buildHistory(progress),
 
           // ===== 3. LOGOUT (widget milik Anggota 1) =====
           const SizedBox(height: AppSpacing.lg),
@@ -178,39 +126,52 @@ class _ProgressScreenState extends State<ProgressScreen> {
     );
   }
 
-  Widget _buildHistory() {
-    if (_historyError != null) {
-      return StateMessage(
-        icon: Icons.error_outline,
-        title: 'Riwayat kuis belum bisa dimuat',
-        subtitle: _historyError,
-        color: AppColors.error,
-      );
+  Widget _buildHistory(ProgressProvider progress) {
+    switch (progress.status) {
+      case LoadStatus.idle:
+        return const StateMessage(
+          icon: Icons.lock_outline,
+          title: 'Masuk untuk melihat riwayat kuis',
+        );
+      case LoadStatus.loading:
+        return const Padding(
+          padding: EdgeInsets.all(AppSpacing.lg),
+          child: Center(child: CircularProgressIndicator()),
+        );
+      case LoadStatus.error:
+        return Column(
+          children: [
+            StateMessage(
+              icon: Icons.error_outline,
+              color: AppColors.error,
+              title: progress.error ?? 'Terjadi kesalahan.',
+            ),
+            OutlinedButton.icon(
+              onPressed: progress.retry,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Coba lagi'),
+            ),
+          ],
+        );
+      case LoadStatus.success:
+        final items = progress.recent;
+        if (items.isEmpty) {
+          return const StateMessage(
+            icon: Icons.history,
+            title: 'Belum ada kuis yang diselesaikan',
+            subtitle: 'Kerjakan kuis pertamamu untuk melihat skor di sini.',
+          );
+        }
+        return Column(
+          children: [
+            for (final result in items)
+              Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                child: _HistoryItem(result: result),
+              ),
+          ],
+        );
     }
-    if (!_historyLoaded) {
-      return const Padding(
-        padding: EdgeInsets.all(AppSpacing.lg),
-        child: Center(child: CircularProgressIndicator()),
-      );
-    }
-    if (_history.isEmpty) {
-      return const StateMessage(
-        icon: Icons.history,
-        title: 'Belum ada kuis yang diselesaikan',
-        subtitle: 'Kerjakan kuis pertamamu untuk melihat skor di sini.',
-      );
-    }
-
-    final shown = _history.take(_kMaxHistoryItems).toList();
-    return Column(
-      children: [
-        for (final item in shown)
-          Padding(
-            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-            child: _HistoryTile(result: item),
-          ),
-      ],
-    );
   }
 }
 
@@ -245,16 +206,17 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-class _HistoryTile extends StatelessWidget {
-  const _HistoryTile({required this.result});
+class _HistoryItem extends StatelessWidget {
+  const _HistoryItem({required this.result});
 
   final QuizResult result;
 
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    final total = result.totalQuestions;
-    final percent = total == 0 ? 0 : (result.score * 100 / total).round();
+    final percent = result.totalQuestions == 0
+        ? 0
+        : result.score * 100 ~/ result.totalQuestions;
 
     return AppCard(
       child: Row(
@@ -266,26 +228,22 @@ class _HistoryTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Skor ${result.score} / ${result.totalQuestions}',
+                  '${result.score} / ${result.totalQuestions}',
                   style: text.titleMedium,
                 ),
-                Text(_formatDate(result.completedAt), style: text.bodySmall),
+                Text(result.completedAt.displayDate, style: text.bodySmall),
               ],
             ),
           ),
           Text(
             '$percent%',
-            style: text.titleMedium?.copyWith(color: AppColors.primary),
+            style: text.bodyMedium?.copyWith(
+              color: AppColors.primary,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ],
       ),
     );
   }
-}
-
-/// Format sederhana: 22/11/2026 01:30 (waktu setempat).
-String _formatDate(DateTime value) {
-  final d = value.toLocal();
-  String two(int n) => n.toString().padLeft(2, '0');
-  return '${two(d.day)}/${two(d.month)}/${d.year} ${two(d.hour)}:${two(d.minute)}';
 }
