@@ -6,7 +6,10 @@ import 'features/auth/providers/auth_provider.dart';
 import 'features/auth/screens/login_screen.dart';
 import 'features/home_shell.dart';
 import 'features/notification/providers/notification_provider.dart';
+import 'features/notification/providers/reminder_provider.dart';
 import 'features/notification/services/notification_service.dart';
+import 'features/notification/services/reminder_scheduler.dart';
+import 'features/notification/services/reminder_store.dart';
 import 'features/progress/providers/progress_provider.dart';
 import 'features/quiz/providers/quiz_provider.dart';
 import 'features/quiz/screens/quiz_screen.dart';
@@ -61,6 +64,15 @@ class VocaApp extends StatelessWidget {
             ),
             update: (_, auth, notifications) =>
                 notifications!..updateUser(auth.uid),
+          ),
+          ChangeNotifierProxyProvider<AuthProvider, ReminderProvider>(
+            // Menjadwalkan ulang pengingat harian begitu user login.
+            lazy: false,
+            create: (_) => ReminderProvider(
+              LocalReminderScheduler(),
+              FirestoreReminderStore(),
+            ),
+            update: (_, auth, reminder) => reminder!..updateUser(auth.uid),
           ),
         ],
         child: MaterialApp(

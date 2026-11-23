@@ -8,6 +8,7 @@ import '../../../core/widgets/state_message.dart';
 import '../../../shared/models/quiz_result.dart';
 import '../../auth/widgets/logout_button.dart';
 import '../../auth/widgets/profile_card.dart';
+import '../../notification/widgets/reminder_tile.dart';
 import '../../quiz/screens/quiz_screen.dart';
 import '../../vocabulary/providers/favorites_provider.dart';
 import '../../vocabulary/providers/vocabulary_provider.dart' show LoadStatus;
@@ -21,10 +22,6 @@ class ProgressScreen extends StatefulWidget {
 }
 
 class _ProgressScreenState extends State<ProgressScreen> {
-  // Pengingat masih tampilan sementara; dihubungkan ke FCM dan Firestore
-  // pada langkah notifikasi.
-  bool _reminderOn = true;
-
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
@@ -92,25 +89,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
           const SizedBox(height: AppSpacing.lg),
           Text('Pengingat belajar', style: text.titleMedium),
           const SizedBox(height: AppSpacing.sm),
-          AppCard(
-            padding: EdgeInsets.zero,
-            child: Column(
-              children: [
-                SwitchListTile(
-                  title: const Text('Ingatkan saya belajar'),
-                  subtitle: const Text('Setiap hari'),
-                  value: _reminderOn,
-                  onChanged: (v) => setState(() => _reminderOn = v),
-                ),
-                ListTile(
-                  enabled: _reminderOn,
-                  title: const Text('Waktu pengingat'),
-                  trailing: const Text('19:00'),
-                  onTap: () {},
-                ),
-              ],
-            ),
-          ),
+          const ReminderTile(),
 
           const SizedBox(height: AppSpacing.lg),
           Text('Riwayat kuis', style: text.titleMedium),

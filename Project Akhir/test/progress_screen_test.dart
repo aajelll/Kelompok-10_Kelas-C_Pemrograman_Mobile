@@ -5,6 +5,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:voca/core/theme/app_theme.dart';
 import 'package:voca/features/auth/providers/auth_provider.dart';
+import 'package:voca/features/notification/providers/reminder_provider.dart';
+import 'package:voca/features/notification/services/reminder_scheduler.dart';
+import 'package:voca/features/notification/services/reminder_store.dart';
 import 'package:voca/features/progress/providers/progress_provider.dart';
 import 'package:voca/features/progress/screens/progress_screen.dart';
 import 'package:voca/features/quiz/services/quiz_result_repository.dart';
@@ -49,6 +52,30 @@ class _FakeQuizRepo implements QuizResultRepository {
   Future<void> save(QuizResult result) async {}
 }
 
+/// Penjadwal pengingat palsu: tidak menyentuh plugin notifikasi.
+class _FakeReminderScheduler implements ReminderScheduler {
+  @override
+  Future<void> initialize() async {}
+
+  @override
+  Future<bool> requestPermission() async => true;
+
+  @override
+  Future<void> schedule(int hour, int minute) async {}
+
+  @override
+  Future<void> cancel() async {}
+}
+
+/// Penyimpanan pengingat palsu: tidak menyentuh Firestore.
+class _FakeReminderStore implements ReminderStore {
+  @override
+  Future<ReminderSettings> load(String uid) async => const ReminderSettings();
+
+  @override
+  Future<void> save(String uid, ReminderSettings settings) async {}
+}
+
 VocabularyEntry _entry(String word) => VocabularyEntry(
       word: word,
       meanings: [
@@ -73,8 +100,11 @@ Future<void> _pump(
     ..updateUser('u1');
   final progressProvider = ProgressProvider(repositoryFactory: quizFactory)
     ..updateUser('u1');
+  final reminderProvider =
+      ReminderProvider(_FakeReminderScheduler(), _FakeReminderStore());
   addTearDown(favoritesProvider.dispose);
   addTearDown(progressProvider.dispose);
+  addTearDown(reminderProvider.dispose);
 
   await tester.pumpWidget(
     MultiProvider(
@@ -82,6 +112,7 @@ Future<void> _pump(
         ChangeNotifierProvider<AuthProvider>.value(value: _FakeAuth()),
         ChangeNotifierProvider.value(value: favoritesProvider),
         ChangeNotifierProvider.value(value: progressProvider),
+        ChangeNotifierProvider.value(value: reminderProvider),
       ],
       child: MaterialApp(theme: AppTheme.light, home: const ProgressScreen()),
     ),
