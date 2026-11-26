@@ -2,10 +2,13 @@ import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import '../services/user_profile_store.dart';
 
 /// Status login pengguna. Sumber UID untuk seluruh fitur (Favorites, Kuis).
 class AuthProvider extends ChangeNotifier {
-  AuthProvider({FirebaseAuth? auth}) : _auth = auth ?? FirebaseAuth.instance {
+    AuthProvider({FirebaseAuth? auth, UserProfileStore? profileStore})
+      : _auth = auth ?? FirebaseAuth.instance,
+        _profileStore = profileStore ?? FirestoreUserProfileStore() {
     _user = _auth.currentUser;
     // userChanges: ikut memancar saat login, logout, dan perubahan profil.
     _subscription = _auth.userChanges().listen((user) {
@@ -16,6 +19,7 @@ class AuthProvider extends ChangeNotifier {
   }
 
   final FirebaseAuth _auth;
+  final UserProfileStore _profileStore;
   late final StreamSubscription<User?> _subscription;
 
   User? _user;
@@ -40,11 +44,14 @@ class AuthProvider extends ChangeNotifier {
 
   String get email => _user?.email ?? '';
 
-  Future<bool> login(String email, String password) => _run(() async {
+    Future<bool> login(String email, String password) => _run(() async {
         await _auth.signInWithEmailAndPassword(
           email: email.trim(),
           password: password,
         );
+        // Tidak di-await: saat offline, penulisan Firestore menunggu koneksi
+        // dan akan menahan layar login.
+        unawaited(_syncProfile());
       });
 
   Future<bool> register(String name, String email, String password) =>
@@ -56,10 +63,31 @@ class AuthProvider extends ChangeNotifier {
         await credential.user?.updateDisplayName(name.trim());
         await credential.user?.reload();
         _user = _auth.currentUser;
+        unawaited(_syncProfile());
       });
 
   Future<void> logout() => _auth.signOut();
 
+    Future<void> _syncProfile() async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+    try {
+      await _profileStore.save(
+        user.uid,
+        displayName: _nameOf(user),
+        email: user.email ?? '',
+      );
+    } catch (_) {
+      // Akan dicoba lagi pada login berikutnya.
+    }
+  }
+
+  String _nameOf(User user) {
+    final name = user.displayName?.trim();
+    if (name != null && name.isNotEmpty) return name;
+    return user.email?.split('@').first ?? '';
+  }
+  
   /// Menjalankan aksi auth: mengatur loading dan menerjemahkan error.
   /// Mengembalikan true jika berhasil.
   Future<bool> _run(Future<void> Function() action) async {
