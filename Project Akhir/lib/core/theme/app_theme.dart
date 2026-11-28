@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  static const primary = Color(0xFF2563EB); // biru: tombol, aksen utama
+  static const primary = Color(0xFF2563EB); // biru: tombol, bintang aktif, ikon aktif
   static const primaryDark = Color(0xFF1D4ED8); // biru lebih tua: penekanan
-  static const primarySoft = Color(0xFFEAF1FF); // biru sangat muda: latar ikon, indikator
-  static const secondary = Color(0xFF38BDF8); // biru langit: aksen pendukung
-  static const background = Color(0xFFF5F7FB); // latar halaman
-  static const surface = Colors.white; // kartu, input
-  static const border = Color(0xFFE2E8F0); // garis tipis kartu dan input
+  static const primarySoft = Color(0xFFDCE8FF); // kotak dalam (Example, Synonyms), indikator
+  static const card = Color(0xFFEEF4FF); // latar kartu
+  static const secondary = Color(0xFF38BDF8);
+  static const background = Colors.white;
+  static const surface = Colors.white;
+  static const border = Color(0xFFD6E2FA);
   static const textPrimary = Color(0xFF0F172A);
-  static const textSecondary = Color(0xFF64748B);
+  static const textSecondary = Color(0xFF5B6B85);
   static const success = Color(0xFF16A34A); // jawaban benar
+  static const successSoft = Color(0xFFDCFCE7);
   static const error = Color(0xFFDC2626); // jawaban salah / error
+  static const errorSoft = Color(0xFFFEE2E2);
 }
 
 class AppSpacing {
@@ -19,12 +22,13 @@ class AppSpacing {
 }
 
 class AppRadius {
-  static const sm = 10.0, md = 14.0, lg = 20.0, xl = 28.0;
+  static const sm = 12.0, md = 16.0, lg = 24.0, xl = 32.0;
 }
 
 class AppTheme {
   static ThemeData get light => ThemeData(
         useMaterial3: true,
+        fontFamily: 'Inter',
         colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary).copyWith(
           primary: AppColors.primary,
           onPrimary: Colors.white,
@@ -41,36 +45,73 @@ class AppTheme {
           scrolledUnderElevation: 0,
           centerTitle: false,
           titleTextStyle: TextStyle(
+            fontFamily: 'Inter',
             fontSize: 20,
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w500,
             color: AppColors.textPrimary,
           ),
         ),
+        // Skala huruf diukur dari wireframe (perkiraan, font Inter).
         textTheme: const TextTheme(
+          headlineLarge: TextStyle(
+            fontSize: 40,
+            fontWeight: FontWeight.w700,
+            height: 1.15,
+            letterSpacing: -0.8,
+            color: AppColors.textPrimary,
+          ),
           headlineMedium: TextStyle(
-            fontSize: 26,
-            fontWeight: FontWeight.w800,
-            letterSpacing: -0.4,
+            fontSize: 32,
+            fontWeight: FontWeight.w600,
+            height: 1.2,
+            letterSpacing: -0.5,
+            color: AppColors.textPrimary,
+          ),
+          headlineSmall: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.w700,
+            height: 1.25,
             color: AppColors.textPrimary,
           ),
           titleLarge: TextStyle(
             fontSize: 20,
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w500,
             color: AppColors.textPrimary,
           ),
           titleMedium: TextStyle(
-            fontSize: 16,
+            fontSize: 17,
             fontWeight: FontWeight.w600,
             color: AppColors.textPrimary,
           ),
+          titleSmall: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+            color: AppColors.textPrimary,
+          ),
+          bodyLarge: TextStyle(
+            fontSize: 17,
+            fontWeight: FontWeight.w400,
+            color: AppColors.textPrimary,
+          ),
           bodyMedium: TextStyle(
-            fontSize: 14,
-            height: 1.4,
+            fontSize: 15,
+            fontWeight: FontWeight.w400,
+            height: 1.45,
             color: AppColors.textPrimary,
           ),
           bodySmall: TextStyle(
-            fontSize: 12.5,
-            height: 1.35,
+            fontSize: 14,
+            fontWeight: FontWeight.w400,
+            height: 1.4,
+            color: AppColors.textSecondary,
+          ),
+          labelLarge: TextStyle(
+            fontSize: 17,
+            fontWeight: FontWeight.w500,
+          ),
+          labelMedium: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w400,
             color: AppColors.textSecondary,
           ),
         ),
@@ -78,13 +119,13 @@ class AppTheme {
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.primary,
             foregroundColor: Colors.white,
-            disabledBackgroundColor: AppColors.border,
+            disabledBackgroundColor: AppColors.primarySoft,
             disabledForegroundColor: AppColors.textSecondary,
             elevation: 0,
             minimumSize: const Size.fromHeight(52),
-            textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            textStyle: const TextStyle(fontSize: 17, fontWeight: FontWeight.w500),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppRadius.md),
+              borderRadius: BorderRadius.circular(AppRadius.lg),
             ),
           ),
         ),
@@ -93,70 +134,47 @@ class AppTheme {
             foregroundColor: AppColors.primary,
             minimumSize: const Size(64, 52),
             side: const BorderSide(color: AppColors.primary),
-            textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+            textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppRadius.md),
+              borderRadius: BorderRadius.circular(AppRadius.lg),
             ),
           ),
         ),
         textButtonTheme: TextButtonThemeData(
           style: TextButton.styleFrom(
             foregroundColor: AppColors.primary,
-            textStyle: const TextStyle(fontWeight: FontWeight.w600),
+            textStyle: const TextStyle(fontWeight: FontWeight.w500),
           ),
         ),
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
-          fillColor: AppColors.surface,
+          fillColor: AppColors.card,
           contentPadding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.md,
+            horizontal: AppSpacing.lg,
             vertical: AppSpacing.md,
           ),
           hintStyle: const TextStyle(color: AppColors.textSecondary),
           prefixIconColor: AppColors.textSecondary,
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(AppRadius.md),
-            borderSide: const BorderSide(color: AppColors.border),
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+            borderSide: BorderSide.none,
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(AppRadius.md),
-            borderSide: const BorderSide(color: AppColors.border),
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+            borderSide: BorderSide.none,
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(AppRadius.md),
-            borderSide: const BorderSide(color: AppColors.primary, width: 2),
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+            borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
           ),
           errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(AppRadius.md),
+            borderRadius: BorderRadius.circular(AppRadius.lg),
             borderSide: const BorderSide(color: AppColors.error),
           ),
           focusedErrorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(AppRadius.md),
-            borderSide: const BorderSide(color: AppColors.error, width: 2),
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+            borderSide: const BorderSide(color: AppColors.error, width: 1.5),
           ),
-        ),
-        navigationBarTheme: NavigationBarThemeData(
-          backgroundColor: AppColors.surface,
-          surfaceTintColor: Colors.transparent,
-          indicatorColor: AppColors.primarySoft,
-          elevation: 8,
-          shadowColor: const Color(0x1A0F172A),
-          height: 68,
-          labelTextStyle: WidgetStateProperty.resolveWith((states) {
-            final selected = states.contains(WidgetState.selected);
-            return TextStyle(
-              fontSize: 12,
-              fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-              color: selected ? AppColors.primary : AppColors.textSecondary,
-            );
-          }),
-          iconTheme: WidgetStateProperty.resolveWith((states) {
-            final selected = states.contains(WidgetState.selected);
-            return IconThemeData(
-              size: 24,
-              color: selected ? AppColors.primary : AppColors.textSecondary,
-            );
-          }),
         ),
         switchTheme: SwitchThemeData(
           thumbColor: WidgetStateProperty.all(Colors.white),
@@ -171,10 +189,7 @@ class AppTheme {
           color: AppColors.primary,
           linearTrackColor: AppColors.primarySoft,
         ),
-        dividerTheme: const DividerThemeData(
-          color: AppColors.border,
-          space: 1,
-        ),
+        dividerTheme: const DividerThemeData(color: AppColors.border, space: 1),
         snackBarTheme: SnackBarThemeData(
           behavior: SnackBarBehavior.floating,
           backgroundColor: AppColors.textPrimary,

@@ -15,6 +15,7 @@ import 'package:voca/features/vocabulary/providers/favorites_provider.dart';
 import 'package:voca/features/vocabulary/services/favorites_store.dart';
 import 'package:voca/shared/models/quiz_result.dart';
 import 'package:voca/shared/models/vocabulary_entry.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 /// AuthProvider palsu: ProfileCard hanya membaca nama dan email.
 class _FakeAuth extends ChangeNotifier implements AuthProvider {
@@ -120,6 +121,7 @@ Future<void> _pump(
 }
 
 void main() {
+  setUpAll(() => initializeDateFormatting('id_ID'));
   testWidgets('belum ada data: angka nol dan pesan riwayat kosong',
       (tester) async {
     final favorites = _FakeFavoritesStore();
