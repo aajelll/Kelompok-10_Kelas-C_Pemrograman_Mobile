@@ -145,4 +145,88 @@ void main() {
     expect(result, isA<Failure<VocabularyEntry>>());
     expect((result as Failure<VocabularyEntry>).message, contains('internet'));
   });
+  test('contoh dikumpulkan dari semua arti, maksimal 3, tanpa duplikat',
+      () async {
+    final service = DictionaryApiService(
+      client: MockClient((_) async => _json(jsonEncode([
+            {
+              'word': 'candid',
+              'meanings': [
+                {
+                  'partOfSpeech': 'adjective',
+                  'definitions': [
+                    {'definition': 'Honest.', 'example': 'Contoh satu.'},
+                    {'definition': 'Frank.', 'example': 'contoh SATU.'},
+                    {'definition': 'Open.', 'example': 'Contoh dua.'},
+                  ],
+                },
+                {
+                  'partOfSpeech': 'noun',
+                  'definitions': [
+                    {'definition': 'A photo.', 'example': 'Contoh tiga.'},
+                    {'definition': 'Another.', 'example': 'Contoh empat.'},
+                  ],
+                },
+              ],
+            },
+          ]))),
+    );
+
+    final entry = _entryOf(await service.fetchWord('candid'));
+
+    expect(entry.examples, ['Contoh satu.', 'Contoh dua.', 'Contoh tiga.']);
+  });
+
+  test('sinonim dari definisi dan arti, maksimal 3, tanpa duplikat', () async {
+    final service = DictionaryApiService(
+      client: MockClient((_) async => _json(jsonEncode([
+            {
+              'word': 'candid',
+              'meanings': [
+                {
+                  'partOfSpeech': 'adjective',
+                  'synonyms': ['frank', 'Honest'],
+                  'definitions': [
+                    {
+                      'definition': 'Honest.',
+                      'synonyms': ['honest', 'open'],
+                    },
+                    {
+                      'definition': 'Frank.',
+                      'synonyms': ['plain'],
+                    },
+                  ],
+                },
+              ],
+            },
+          ]))),
+    );
+
+    final entry = _entryOf(await service.fetchWord('candid'));
+
+    expect(entry.synonyms, ['honest', 'open', 'plain']);
+  });
+
+  test('tanpa contoh dan sinonim: daftar kosong, tidak error', () async {
+    final service = DictionaryApiService(
+      client: MockClient((_) async => _json(jsonEncode([
+            {
+              'word': 'candid',
+              'meanings': [
+                {
+                  'partOfSpeech': 'adjective',
+                  'definitions': [
+                    {'definition': 'Honest.'}
+                  ],
+                },
+              ],
+            },
+          ]))),
+    );
+
+    final entry = _entryOf(await service.fetchWord('candid'));
+
+    expect(entry.examples, isEmpty);
+    expect(entry.synonyms, isEmpty);
+  });
 }

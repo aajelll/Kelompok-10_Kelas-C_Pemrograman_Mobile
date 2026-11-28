@@ -8,6 +8,10 @@ import '../../../shared/models/result.dart';
 import '../../../shared/models/vocabulary_entry.dart';
 import '../../../shared/services/contracts.dart';
 
+/// Potongan pesan untuk kata yang tidak ada di kamus. Dipakai Provider agar
+/// "tidak ditemukan" bisa dibedakan dari gangguan jaringan.
+const String kWordNotFoundMarker = 'tidak ditemukan';
+
 /// Implementasi [VocabularySource] memakai Free Dictionary API.
 /// https://dictionaryapi.dev/
 class DictionaryApiService implements VocabularySource {
@@ -18,8 +22,12 @@ class DictionaryApiService implements VocabularySource {
   static const _baseUrl = 'https://api.dictionaryapi.dev/api/v2/entries/en';
   static const _timeout = Duration(seconds: 10);
 
-  /// Batas definisi per jenis kata, supaya tampilan tidak terlalu panjang.
+  /// Batas definisi per jenis kata, supaya data arti tidak terlalu panjang.
   static const _maxDefinitionsPerMeaning = 2;
+
+  /// Batas contoh kalimat dan sinonim yang ditampilkan.
+  static const _maxExamples = 3;
+  static const _maxSynonyms = 3;
 
   final http.Client _client;
 
@@ -36,7 +44,7 @@ class DictionaryApiService implements VocabularySource {
           .timeout(_timeout);
 
       if (response.statusCode == 404) {
-        return Failure<VocabularyEntry>('Kata "$query" tidak ditemukan.');
+        return Failure<VocabularyEntry>('Kata "$query" $kWordNotFoundMarker.');
       }
       if (response.statusCode != 200) {
         return Failure<VocabularyEntry>(
@@ -81,6 +89,8 @@ class DictionaryApiService implements VocabularySource {
     String? word;
     String? phonetic;
     final meanings = <WordMeaning>[];
+    final examples = <String>[];
+    final synonyms = <String>[];
 
     // API bisa mengembalikan beberapa entri untuk satu kata; semuanya digabung.
     for (final item in json) {
@@ -98,16 +108,28 @@ class DictionaryApiService implements VocabularySource {
         final definitions = m['definitions'];
         if (definitions is! List) continue;
 
-        for (final d in definitions.take(_maxDefinitionsPerMeaning)) {
+        var kept = 0;
+        for (final d in definitions) {
           if (d is! Map<String, dynamic>) continue;
           final definition = _text(d['definition']);
           if (definition == null) continue;
-          meanings.add(WordMeaning(
-            partOfSpeech: partOfSpeech,
-            definition: definition,
-            example: _text(d['example']), // sering null
-          ));
+
+          // Contoh dan sinonim diambil dari semua definisi, bukan hanya
+          // yang disimpan sebagai arti.
+          final example = _text(d['example']);
+          if (example != null) _addUnique(examples, example, _maxExamples);
+          _addAll(synonyms, d['synonyms'], _maxSynonyms);
+
+          if (kept < _maxDefinitionsPerMeaning) {
+            kept++;
+            meanings.add(WordMeaning(
+              partOfSpeech: partOfSpeech,
+              definition: definition,
+              example: example, // sering null
+            ));
+          }
         }
+        _addAll(synonyms, m['synonyms'], _maxSynonyms);
       }
     }
 
@@ -116,6 +138,8 @@ class DictionaryApiService implements VocabularySource {
       word: word ?? query,
       phonetic: phonetic,
       meanings: meanings,
+      examples: examples,
+      synonyms: synonyms,
     );
   }
 
@@ -134,6 +158,23 @@ class DictionaryApiService implements VocabularySource {
       }
     }
     return null;
+  }
+
+  /// Menambah [value] ke [target] jika belum ada (tanpa membedakan huruf
+  /// besar-kecil) dan belum mencapai [max].
+  void _addUnique(List<String> target, String value, int max) {
+    if (target.length >= max) return;
+    final lower = value.toLowerCase();
+    if (target.any((e) => e.toLowerCase() == lower)) return;
+    target.add(value);
+  }
+
+  void _addAll(List<String> target, Object? values, int max) {
+    if (values is! List) return;
+    for (final v in values) {
+      final text = _text(v);
+      if (text != null) _addUnique(target, text, max);
+    }
   }
 
   /// String tidak kosong, atau null jika bukan string / kosong.

@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-
+import '../services/dictionary_api_service.dart' show kWordNotFoundMarker;
 import '../../../core/constants/seed_words.dart';
 import '../../../shared/models/result.dart';
 import '../../../shared/models/vocabulary_entry.dart';
@@ -33,6 +33,8 @@ class VocabularyProvider extends ChangeNotifier {
   LoadStatus get searchStatus => _searchStatus;
   VocabularyEntry? get searchResult => _searchResult;
   String? get searchError => _searchError;
+  bool get searchNotFound =>
+      _searchError?.contains(kWordNotFoundMarker) ?? false;
   String get query => _query;
 
   Future<void> search(String input) async {

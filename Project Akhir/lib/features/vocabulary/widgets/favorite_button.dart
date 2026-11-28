@@ -5,7 +5,8 @@ import '../../../core/theme/app_theme.dart';
 import '../../../shared/models/vocabulary_entry.dart';
 import '../providers/favorites_provider.dart';
 
-/// Tombol hati: tambah / hapus [entry] dari favorit.
+/// Tombol bintang: tambah / hapus [entry] dari favorit.
+/// Abu-abu saat belum favorit, biru (warna utama) saat sudah.
 class FavoriteButton extends StatelessWidget {
   const FavoriteButton({super.key, required this.entry});
 
@@ -24,8 +25,13 @@ class FavoriteButton extends StatelessWidget {
           messenger.showSnackBar(SnackBar(content: Text(error)));
         }
       },
-      icon: Icon(isFavorite ? Icons.favorite : Icons.favorite_border),
-      color: AppColors.primary,
+      icon: Icon(
+        isFavorite ? Icons.star_rounded : Icons.star_border_rounded,
+        size: 30,
+      ),
+      color: isFavorite ? AppColors.primary : AppColors.textSecondary,
+      padding: EdgeInsets.zero,
+      constraints: const BoxConstraints.tightFor(width: 40, height: 40),
       tooltip: isFavorite ? 'Hapus dari favorit' : 'Tambah ke favorit',
     );
   }

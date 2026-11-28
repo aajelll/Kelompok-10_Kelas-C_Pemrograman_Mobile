@@ -19,18 +19,35 @@ class StateMessage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
+    final tint = color ?? AppColors.primary;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 48, color: color ?? AppColors.textSecondary),
-            const SizedBox(height: AppSpacing.sm),
-            Text(title, style: text.titleMedium, textAlign: TextAlign.center),
+            Container(
+              width: 88,
+              height: 88,
+              decoration: BoxDecoration(
+                color: tint.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, size: 40, color: tint),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              title,
+              style: text.titleLarge?.copyWith(
+                fontWeight: FontWeight.w400,
+                color: AppColors.textSecondary,
+              ),
+              textAlign: TextAlign.center,
+            ),
             if (subtitle != null) ...[
-              const SizedBox(height: AppSpacing.xs),
-              Text(subtitle!, style: text.bodySmall, textAlign: TextAlign.center),
+              const SizedBox(height: AppSpacing.sm),
+              Text(subtitle!, style: text.bodyMedium, textAlign: TextAlign.center),
             ],
           ],
         ),
